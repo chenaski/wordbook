@@ -1,27 +1,47 @@
-import { chromium } from "playwright";
+/*
+1. get page html
+  - if SPA render using playwright and grep html
+  - otherwise make simple get request
+2. parse html using jsdom 
+3. save examples as json
+*/
 
-async function getYandexTranslateExamples() {
-  const baseUrl = "https://translate.yandex.by/?ui=ru&lang=en-ru&text=";
-  const searchExpression = "bored stiff";
-  const url = `${baseUrl}${encodeURIComponent(searchExpression)}`;
+async function getPageHtml(url) {
+  const ssr = true;
 
-  const browser = await chromium.launch({
-    headless: true,
-    channel: "chrome",
-  });
-
-  const page = await browser.newPage();
-
-  console.log(url);
-
-  await page.goto(url, { waitUntil: "networkidle" });
-
-  await page.screenshot({
-    path: "screenshot.png",
-    fullPage: true,
-  });
-
-  await browser.close();
+  if (ssr) {
+    return await renderPage(url);
+  } else {
+    return await fetchPage(url);
+  }
 }
 
-await getYandexTranslateExamples();
+async function renderPage(url) {}
+
+async function fetchPage(url) {}
+
+async function parsePage(html) {}
+
+async function getExamplesJson(dom) {}
+
+async function saveExamples(examples) {}
+
+async function getYandexTranslateExamples() {
+  const url = "";
+
+  const html = await getPageHtml(url);
+  const dom = await parsePage(html);
+
+  return await getExamplesJson(dom);
+}
+
+async function main() {
+  try {
+    const examples = await getYandexTranslateExamples();
+    await saveExamples(examples);
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+await main();
