@@ -11,6 +11,7 @@
   "author": "chenaski <mail2chenaski@gmail.com",
   "license": "ISC",
   "dependencies": {
+    "jsdom": "^19.0.0",
     "playwright": "^1.18.0"
   },
   "devDependencies": {
