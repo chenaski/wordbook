@@ -8,10 +8,10 @@
 
 import fs from "fs/promises";
 import { constants as fsConstants } from "fs";
-import { chromium } from "playwright";
+import { chromium, Page } from "playwright";
 import { JSDOM } from "jsdom";
 
-async function getPageHtml(url) {
+async function getPageHtml(url: string) {
   const ssr = true;
 
   if (ssr) {
@@ -21,7 +21,7 @@ async function getPageHtml(url) {
   }
 }
 
-async function renderPage(url) {
+async function renderPage(url: string) {
   console.log("open browser");
   const browser = await chromium.launch({
     headless: true,
@@ -47,34 +47,48 @@ async function renderPage(url) {
   return html;
 }
 
-async function fetchPage(url) {}
+async function fetchPage(url: string) {
+  return "";
+}
 
-async function parsePage(html) {
+async function parsePage(html: string) {
   console.log("parse html");
   return new JSDOM(html);
 }
 
-async function getExamplesJson(dom) {
+async function getExamplesJson(dom: JSDOM): Promise<{ en: string; ru: string }[]> {
   console.log("grab examples");
   const examples = dom.window.document.querySelectorAll(".example_wrapper");
+  const parsedExamples = [];
 
-  return Array.from(examples).map((example) => {
-    return {
-      en: example.children[0].textContent.replace(/\s+/g, " ").trim(),
-      ru: example.children[1].textContent.replace(/\s+/g, " ").trim(),
-    };
-  });
+  const getValue = (element: Element): string | null => {
+    return element?.children[0]?.textContent;
+  };
+
+  for (const example of examples) {
+    const ruExample = getValue(example.children[0]);
+    const enExample = getValue(example.children[1]);
+
+    if (!ruExample || !enExample) continue;
+
+    parsedExamples.push({
+      ru: enExample.replace(/\s+/g, " ").trim(),
+      en: ruExample.replace(/\s+/g, " ").trim(),
+    });
+  }
+
+  return parsedExamples;
 }
 
-async function isFileOrDirExists(path) {
+async function isFileOrDirExists(path: string) {
   return fs
     .access(path, fsConstants.R_OK)
     .then(() => true)
     .catch(() => false);
 }
 
-async function saveExamples(examples, fileName) {
-  if (!(await isFileOrDirExists(isFileOrDirExists("results")))) {
+async function saveExamples(examples: { en: string; ru: string }[], fileName: string) {
+  if (!(await isFileOrDirExists("results"))) {
     await fs.mkdir("results");
   }
 
@@ -84,7 +98,7 @@ async function saveExamples(examples, fileName) {
   await fs.writeFile(saveFilePath, JSON.stringify(examples));
 }
 
-async function getYandexTranslateExamples({ searchExpression }) {
+async function getYandexTranslateExamples({ searchExpression }: { searchExpression: string }) {
   const baseUrl = "https://translate.yandex.by/?ui=ru&lang=en-ru&text=";
   const url = `${baseUrl}${encodeURIComponent(searchExpression)}`;
 
@@ -96,8 +110,8 @@ async function getYandexTranslateExamples({ searchExpression }) {
   return await getExamplesJson(dom);
 }
 
-async function isCaptchaPage(page) {
-  const currentPageUrl = await page.url();
+async function isCaptchaPage(page: Page) {
+  const currentPageUrl = page.url();
   return currentPageUrl.startsWith("https://translate.yandex.by/showcaptcha");
 }
 
