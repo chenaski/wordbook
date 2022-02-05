@@ -1,7 +1,8 @@
 import { GrepExamplesHook, Parser } from "./Parser.js";
 import { Examples } from "./Example.js";
+import { SiteParser } from "./SiteParser.js";
 
-export class LingvoLiveParser {
+export class LingvoLiveParser implements SiteParser {
   static id = "lingvo-live";
 
   async grepExamples({ dom }: Parameters<GrepExamplesHook>[0]): Promise<Examples> {

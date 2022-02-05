@@ -1,8 +1,9 @@
 import { Page } from "playwright";
 import { AfterRenderHook, GrepExamplesHook, Parser } from "./Parser.js";
 import { Examples } from "./Example.js";
+import { SiteParser } from "./SiteParser.js";
 
-export class YandexParser {
+export class YandexParser implements SiteParser {
   static id = "yandex";
 
   async afterRender({ page, browser }: Parameters<AfterRenderHook>[0]): Promise<void> {
