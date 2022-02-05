@@ -1,28 +1,37 @@
-import { Page } from "playwright";
 import { AfterRenderHook, GrepExamplesHook, Parser } from "./Parser.js";
 import { Examples } from "./Example.js";
 
-export class YandexParser {
-  static id = "yandex";
-
-  async afterRender({ page, browser }: Parameters<AfterRenderHook>[0]): Promise<void> {
-    if (await this.isCaptchaPage(page)) {
-      await browser.close();
-      throw Error("captcha :(");
-    }
-  }
+export class WooordHuntParser {
+  static id = "wooord-hunt";
 
   async grepExamples({ dom }: Parameters<GrepExamplesHook>[0]): Promise<Examples> {
-    const examples = dom.window.document.querySelectorAll(".example_wrapper");
+    const examples = dom.window.document.querySelector(".ex_o")?.parentElement;
+
+    if (!examples) throw Error("examples not found");
+
+    const enBlocks = examples.querySelectorAll(".ex_o");
+    const ruBlocks = examples.querySelectorAll(".ex_t");
+    const groupedExamples = [...enBlocks].map((enExample, i) => {
+      const ruExample = ruBlocks[i];
+
+      enExample.querySelectorAll("span,a").forEach((element) => element.remove());
+      ruExample.querySelectorAll("span,a").forEach((element) => element.remove());
+
+      return {
+        en: enExample,
+        ru: ruExample,
+      };
+    });
+
     const parsedExamples = [];
 
     const getValue = (element: Element): string | null => {
-      return element?.children[0]?.textContent;
+      return element.textContent;
     };
 
-    for (const example of examples) {
-      const ruExample = getValue(example.children[0]);
-      const enExample = getValue(example.children[1]);
+    for (const example of groupedExamples) {
+      const enExample = getValue(example.en);
+      const ruExample = getValue(example.ru);
 
       const formatValue = (value: string): string => {
         return value.replace(/\s+/g, " ").trim();
@@ -39,21 +48,14 @@ export class YandexParser {
     return parsedExamples;
   }
 
-  async isCaptchaPage(page: Page): Promise<boolean> {
-    const currentPageUrl = page.url();
-    return currentPageUrl.startsWith("https://translate.yandex.by/showcaptcha");
-  }
-
   async run({ searchExpression }: { searchExpression: string }): Promise<Examples> {
     const parser = new Parser({
-      receiveHtmlStrategy: "render",
       hooks: {
         grepExamples: this.grepExamples.bind(this),
-        afterRender: this.afterRender.bind(this),
       },
     });
 
-    const baseUrl = "https://translate.yandex.by/?ui=ru&lang=en-ru&text=";
+    const baseUrl = "https://wooordhunt.ru/word/";
     const url = `${baseUrl}${encodeURIComponent(searchExpression)}`;
 
     return parser.run({ url });

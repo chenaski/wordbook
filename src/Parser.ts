@@ -1,22 +1,23 @@
 import { Browser, chromium, Page } from "playwright";
 import { JSDOM } from "jsdom";
-import { Examples } from "./Example";
+import { Examples } from "./Example.js";
+import got from "got";
 
 export type SourceUrl = string;
 export type AfterRenderHook = ({ page, browser }: { page: Page; browser: Browser }) => Promise<void>;
 export type GrepExamplesHook = ({ dom }: { dom: JSDOM }) => Promise<Examples>;
 export type ReceiveHtmlStrategy = "render" | "fetch";
 export interface Hooks {
-  afterRender: AfterRenderHook;
+  afterRender?: AfterRenderHook;
   grepExamples: GrepExamplesHook;
 }
 export interface ParserConstructor {
-  receiveHtmlStrategy: ReceiveHtmlStrategy;
+  receiveHtmlStrategy?: ReceiveHtmlStrategy;
   hooks: Hooks;
 }
 
 export class Parser {
-  receiveHtmlStrategy: ReceiveHtmlStrategy;
+  receiveHtmlStrategy?: ReceiveHtmlStrategy;
   hooks: Hooks;
 
   constructor({ receiveHtmlStrategy, hooks }: ParserConstructor) {
@@ -57,7 +58,7 @@ export class Parser {
     await page.goto(url, { waitUntil: "networkidle" });
 
     console.log("hooks: afterRender");
-    await this.hooks.afterRender({ page, browser });
+    await this.hooks?.afterRender?.({ page, browser });
 
     console.log("grab html");
     const html = await page.content();
@@ -69,7 +70,8 @@ export class Parser {
   }
 
   async fetchPage(url: string): Promise<string> {
-    return "";
+    const response = await got.get(url);
+    return response.body;
   }
 
   async parsePage(html: string): Promise<JSDOM> {
