@@ -31,8 +31,8 @@ export class LingvoLiveParser implements SiteParser {
       if (!enExample || !ruExample) continue;
 
       parsedExamples.push({
-        ru: formatValue(enExample),
-        en: formatValue(ruExample),
+        ru: formatValue(ruExample),
+        en: formatValue(enExample),
       });
     }
 

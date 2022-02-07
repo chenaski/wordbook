@@ -41,8 +41,8 @@ export class WooordHuntParser implements SiteParser {
       if (!ruExample || !enExample) continue;
 
       parsedExamples.push({
-        ru: formatValue(enExample),
-        en: formatValue(ruExample),
+        ru: formatValue(ruExample),
+        en: formatValue(enExample),
       });
     }
 
