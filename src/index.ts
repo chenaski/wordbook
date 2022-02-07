@@ -3,6 +3,7 @@ import { Cache } from "./Cache.js";
 import { WooordHuntParser } from "./WooordHuntParser.js";
 import { LingvoLiveParser } from "./LingvoLiveParser.js";
 import { SiteParser } from "./SiteParser.js";
+import { OxfordLearnersDictionaryParser } from "./OxfordLearnersDictionaryParser.js";
 
 async function runParser(
   Parser: { id: string; new (): SiteParser },
@@ -29,6 +30,7 @@ async function main() {
     await runParser(YandexParser, { searchExpression });
     await runParser(WooordHuntParser, { searchExpression });
     await runParser(LingvoLiveParser, { searchExpression });
+    await runParser(OxfordLearnersDictionaryParser, { searchExpression });
   } catch (e) {
     console.error(e);
   }
