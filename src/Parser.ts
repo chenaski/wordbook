@@ -1,14 +1,16 @@
 import { Browser, chromium, Page } from "playwright";
 import { JSDOM } from "jsdom";
 import { Examples } from "./Example.js";
-import got from "got";
+import got, { Response } from "got";
 
 export type SourceUrl = string;
 export type AfterRenderHook = ({ page, browser }: { page: Page; browser: Browser }) => Promise<void>;
+export type OnGetResponseHook = ({ response }: { response: Response<string> }) => Promise<void>;
 export type GrepExamplesHook = ({ dom }: { dom: JSDOM }) => Promise<Examples>;
 export type ReceiveHtmlStrategy = "render" | "fetch";
 export interface Hooks {
   afterRender?: AfterRenderHook;
+  onGetResponse?: OnGetResponseHook;
   grepExamples: GrepExamplesHook;
 }
 export interface ParserConstructor {
@@ -71,6 +73,9 @@ export class Parser {
 
   async fetchPage(url: string): Promise<string> {
     const response = await got.get(url);
+
+    await this.hooks?.onGetResponse?.({ response });
+
     return response.body;
   }
 
